@@ -10,13 +10,17 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.cnm.deepdive.nasaapod.BuildConfig;
 import edu.cnm.deepdive.nasaapod.R;
 import edu.cnm.deepdive.nasaapod.model.Apod;
 import edu.cnm.deepdive.nasaapod.service.ApodService;
+import edu.cnm.deepdive.nasaapod.viewmodel.MainViewModel;
 import java.io.IOException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -27,12 +31,20 @@ public class ImageFragment extends Fragment {
   private static final String IMAGE_URL = "https://apod.nasa.gov/apod/image/2001/ic410_WISEantonucci_1824.jpg";
 
   private WebView contentView;
+  private MainViewModel viewModel;
 
+  @Override
   public View onCreateView(@NonNull LayoutInflater inflater,
       ViewGroup container, Bundle savedInstanceState) {
     View root = inflater.inflate( R.layout.fragment_image, container, false );
     setupWebView( root );
     return root;
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated( view, savedInstanceState );
+    viewModel = new ViewModelProvider(getActivity()).get( MainViewModel.class );
   }
 
   private void setupWebView(View root) {
@@ -58,32 +70,4 @@ public class ImageFragment extends Fragment {
     new Retriever().start();
   }
 
-  private class Retriever extends Thread {
-
-    @Override
-    public void run() {
-      Gson gson = new GsonBuilder()
-          .excludeFieldsWithoutExposeAnnotation()
-          .setDateFormat( "yyyy-MM-dd" )
-          .create();
-      Retrofit retrofit = new Retrofit.Builder()
-          .baseUrl( BuildConfig.BASE_URL )
-          .addConverterFactory( GsonConverterFactory.create( gson ) )
-          .build();
-      ApodService service = retrofit.create( ApodService.class );
-      try {
-        Response<Apod> resposnse = service.get( BuildConfig.API_KEY, "2019-01-27" ).execute();
-        if (resposnse.isSuccessful()) {
-          Apod apod = resposnse.body();
-          final String url = apod.getUrl();
-          getActivity().runOnUiThread(() -> contentView.loadUrl( url ));
-        } else {
-          Log.e( "ApodService", resposnse.message() );
-        }
-      } catch (IOException e) {
-        Log.e( "ApodService", e.getMessage(), e );
-      }
-    }
-
-  }
 }
