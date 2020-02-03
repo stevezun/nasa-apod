@@ -19,4 +19,4 @@ NASA APoD Browser is an Android-based client for the NASA APoD Service.
 
 
 
-###[Entity-relationship-diagram](erd.md)
+### [Entity-relationship-diagram](erd.md)
