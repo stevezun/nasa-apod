@@ -1,33 +1,63 @@
-package edu.cnm.deepdive.nasaapod.model;
+package edu.cnm.deepdive.nasaapod.model.entity;
 
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.util.Date;
 
+@Entity(
+    indices = @Index( value = "date", unique = true)
+)
 public class Apod {
 
+  @ColumnInfo(name = "apod_id")
+  @PrimaryKey(autoGenerate = true)
+  private long id;
+
+  @NonNull
   @Expose
   private Date date;
+
   @Expose
   private String title;
+
+  @Expose
+  @SerializedName("explanation")
+  private String description;
+
   @Expose
   private String copyright;
+
+  @ColumnInfo(name = "media_type")
   @Expose
-  @SerializedName( "explanation" )
-  private String description;
-  @Expose
-  private String copyRight;
-  @Expose
-  @SerializedName( "media_type" )
+  @SerializedName("media_type")
   private String mediaType;
+
+  @Ignore
   @Expose
-  @SerializedName( "service_version" )
+  @SerializedName("service_version")
   private String serviceVersion;
-  @Expose
-  @SerializedName( "hdurl" )
-  private String hdURl;
+
   @Expose
   private String url;
+
+  @ColumnInfo(name = "hd_url")
+  @Expose
+  @SerializedName("hdurl")
+  private String hdUrl;
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
 
   public Date getDate() {
     return date;
@@ -43,6 +73,14 @@ public class Apod {
 
   public void setTitle(String title) {
     this.title = title;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public String getCopyright() {
@@ -69,14 +107,6 @@ public class Apod {
     this.serviceVersion = serviceVersion;
   }
 
-  public String getHdURl() {
-    return hdURl;
-  }
-
-  public void setHdURl(String hdURl) {
-    this.hdURl = hdURl;
-  }
-
   public String getUrl() {
     return url;
   }
@@ -85,11 +115,12 @@ public class Apod {
     this.url = url;
   }
 
-  public String getDescription() {
-    return description;
+  public String getHdUrl() {
+    return hdUrl;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
+  public void setHdUrl(String hdUrl) {
+    this.hdUrl = hdUrl;
   }
+
 }
