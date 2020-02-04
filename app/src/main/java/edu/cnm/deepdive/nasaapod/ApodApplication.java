@@ -9,8 +9,9 @@ public class ApodApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
-    Stetho.initializeWithDefaults( this );
-    ApodDatabase.setContext( this );
-
+    Stetho.initializeWithDefaults(this);
+    ApodDatabase.setContext(this);
+    new Thread(() -> ApodDatabase.getInstance().getApodDao().delete()).start();
   }
+
 }
