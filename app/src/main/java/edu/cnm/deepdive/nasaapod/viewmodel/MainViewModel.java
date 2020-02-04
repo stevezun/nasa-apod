@@ -10,7 +10,9 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.cnm.deepdive.nasaapod.BuildConfig;
+import edu.cnm.deepdive.nasaapod.model.dao.AccessDao;
 import edu.cnm.deepdive.nasaapod.model.dao.ApodDao;
+import edu.cnm.deepdive.nasaapod.model.entity.Access;
 import edu.cnm.deepdive.nasaapod.model.entity.Apod;
 import edu.cnm.deepdive.nasaapod.service.ApodDatabase;
 import edu.cnm.deepdive.nasaapod.service.ApodService;
@@ -34,17 +36,18 @@ public class MainViewModel extends AndroidViewModel {
   private ApodService nasa;
 
   public MainViewModel(@NonNull Application application) {
-    super(application);
+    super( application );
     database = ApodDatabase.getInstance();
     nasa = ApodService.getInstance();
     apod = new MutableLiveData<>();
     throwable = new MutableLiveData<>();
     Date today = new Date();
-    String formattedDate = ApodService.DATE_FORMATTER.format(today);
+    String formattedDate = ApodService.DATE_FORMATTER.format( today );
     try {
-      setApodDate(ApodService.DATE_FORMATTER.parse(formattedDate)); // TODO Investigate adjustment for NASA APOD-relevant time zone.
+      setApodDate( ApodService.DATE_FORMATTER.parse(
+          formattedDate ) ); // TODO Investigate adjustment for NASA APOD-relevant time zone.
     } catch (ParseException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException( e );
     }
   }
 
@@ -58,26 +61,39 @@ public class MainViewModel extends AndroidViewModel {
 
   public void setApodDate(Date date) {
     ApodDao dao = database.getApodDao();
-    dao.select(date)
-        .subscribeOn(Schedulers.io())
+    dao.select( date )
+        .subscribeOn( Schedulers.io() )
         .subscribe(
-            (apod) -> this.apod.postValue(apod),
-            (throwable) -> this.throwable.postValue(throwable),
-            () -> nasa.get(BuildConfig.API_KEY, ApodService.DATE_FORMATTER.format(date))
-                .subscribeOn(Schedulers.io())
+            (apod) -> {
+              this.apod.postValue( apod );
+              insertAccess( apod );
+            },
+            (throwable) -> this.throwable.postValue( throwable ),
+            () -> nasa.get( BuildConfig.API_KEY, ApodService.DATE_FORMATTER.format( date ) )
+                .subscribeOn( Schedulers.io() )
                 .subscribe(
                     (apod) -> dao.insert( apod )
-                        .subscribeOn(Schedulers.io())
+                        .subscribeOn( Schedulers.io() )
                         .subscribe(
                             (id) -> {
                               apod.setId( id );
                               this.apod.postValue( apod );
+                              insertAccess( apod );
                             },
                             (throwable) -> this.throwable.postValue( throwable )
                         ),
-                    (throwable) -> this.throwable.postValue(throwable)
+                    (throwable) -> this.throwable.postValue( throwable )
                 )
         );
+  }
+
+  private void insertAccess(Apod apod) {
+    AccessDao accessDao = database.getAccessDao();
+    Access access = new Access();
+    access.setApodId( apod.getId() );
+    accessDao.insert( access )
+        .subscribeOn( Schedulers.io() )
+        .subscribe(/* TODO Handle error result */ );
   }
 
 }
